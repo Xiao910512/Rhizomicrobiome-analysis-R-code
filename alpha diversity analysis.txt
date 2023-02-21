@@ -1,0 +1,121 @@
+library(agricolae)
+library(ggplot2)
+library(reshape)
+##########bacterial alpha diveristy comparison and figures
+
+alpha<-read.table("alpha_diversity_index.txt",header=T,row.name=1,sep="\t")
+
+head(alpha)
+##############comparison bulk soil and rhizosphere and figures
+
+kruskal.test(Observed_species~Group1, data = alpha)
+comparison<-with(alpha, kruskal(Observed_species, Group1, group=TRUE, main="data"))
+comparison
+kruskal.test(Shannon~Group1, data = alpha)
+comparison<-with(alpha, kruskal(Shannon, Group1, group=TRUE, main="data"))
+comparison
+
+alpha$Group1 = factor(alpha$Group1, 
+              levels=c('Rhizosphere', 'Bulk soil'))
+
+data<-melt(alpha[,c(1:2,8)])
+head(data)
+
+dev.new()
+p <- ggplot(data=data, aes(x=Group1, y=value, fill=Group1)) + geom_boxplot() + facet_wrap(~variable, scales = 'free_y', ncol = 2)
+p + geom_jitter(width = 0.4, alpha = 0.6, fill = 'grey')+theme_bw()
+last_plot() + xlab("")+ ylab("")
+last_plot() + theme(strip.text = element_text(size = 15))
+last_plot() + theme(axis.text.y = element_text(size = 15))
+last_plot() + theme(axis.text.x = element_text(size = 18, angle = 45, vjust = 0.5))
+last_plot() + theme(legend.position = 'none')
+
+
+###########
+#############the comparison of rhizosphere microbiome between four gourps and figures
+
+alpha_rh<-alpha[19:42,]
+head(alpha_rh)
+alpha_rh$Group2 <- c(rep('A_A', 6), rep('A_B', 6), rep('B_A', 6), rep('B_B', 6))
+alpha_rh$Group2 = factor(alpha_rh$Group2,
+              levels = c('A_A', 'A_B', 'B_A', 'B_B'))
+alpha_rh$Group2
+
+kruskal.test(Observed_species~Group2, data = alpha_rh)
+comparison<-with(alpha_rh, kruskal(Observed_species, Group2, group=TRUE, main="alpha_rh"))
+comparison
+kruskal.test(Shannon~Group2, data = alpha_rh)
+comparison<-with(alpha_rh,kruskal(Shannon,Group2,group=TRUE, main="alpha_rh"))
+comparison
+
+data<-melt(alpha_rh[, c(1:2, 9)])
+head(data)
+
+dev.new()
+p <- ggplot(data = data, aes(x = Group2, y = value, fill = Group2)) + geom_boxplot() + facet_wrap(~variable, scales = 'free_y', ncol = 2)
+p + geom_jitter(width = 0.4, alpha = 0.6, fill = 'grey') + theme_bw()
+last_plot() + xlab("") + ylab("")
+last_plot() + theme(strip.text = element_text(size = 15))
+last_plot() + theme(axis.text.y = element_text(size = 15))
+last_plot() + theme(axis.text.x = element_text(size = 18, angle = 45, vjust = 0.5))
+last_plot() + theme(legend.position = 'none')
+
+#########fungal microbiome
+alpha<-read.table("fungal_alpha_diversity_index.txt", header=T, row.name=1, sep="\t")
+
+head(alpha)
+
+##############comparison bulk soil and rhizosphere and figures
+kruskal.test(Observed_species~Group1, data = alpha)
+comparison <- with(alpha,kruskal(Observed_species, Group1, group=TRUE, main = "data"))
+comparison
+kruskal.test(Shannon ~ Group1, data = alpha)
+comparison <- with(alpha,kruskal(Shannon, Group1, group=TRUE, main = "data"))
+comparison
+
+
+alpha$Group1 = factor(alpha$Group1, 
+              levels = c('Rhizosphere', 'Bulk soil'))
+
+data <- melt(alpha[, c(1:2, 8)])
+head(data)
+
+dev.new()
+p <- ggplot(data=data, aes(x=Group1, y=value, fill=Group1)) + geom_boxplot() + facet_wrap(~variable, scales = 'free_y', ncol = 2)
+p + geom_jitter(width = 0.4, alpha = 0.6, fill = 'grey') + theme_bw()
+last_plot() + xlab("") + ylab("")
+last_plot() + theme(strip.text = element_text(size = 15))
+last_plot() + theme(axis.text.y = element_text(size = 15))
+last_plot() + theme(axis.text.x = element_text(size = 18, angle = 45, vjust = 0.5))
+last_plot() + theme(legend.position = 'none')
+
+###########
+#############the comparison of rhizosphere microbiome between four gourps and figures  
+
+alpha_rh<-alpha[1:22,]
+head(alpha_rh)
+alpha_rh$Group2 <- c(rep('A_A', 6), rep('A_B', 6), rep('B_A', 6), rep('B_B', 4))
+alpha_rh$Group2 = factor(alpha_rh$Group3,
+              levels = c('A_A', 'A_B', 'B_A', 'B_B'))
+alpha_rh$Group2
+
+kruskal.test(Observed_species ~ Group2, data = alpha_rh)
+comparison <- with(alpha_rh, kruskal(Observed_species, Group2, group = TRUE, main = "alpha_rh"))
+comparison
+kruskal.test(Shannon ~ Group2, data = alpha_rh)
+comparison <- with(alpha_rh, kruskal(Shannon, Group2, group=TRUE, main="alpha_rh"))
+comparison
+
+data <- melt(alpha_rh[, c(1:2, 9)])
+head(data)
+
+dev.new()
+p <- ggplot(data = data, aes(x = Group2, y=value, fill=Group2)) + geom_boxplot() + facet_wrap(~variable, scales = 'free_y', ncol = 2)
+p + geom_jitter(width = 0.4, alpha = 0.6, fill = 'grey') + theme_bw()
+last_plot() + xlab("") + ylab("")
+last_plot() + theme(strip.text = element_text(size = 15))
+last_plot() + theme(axis.text.y = element_text(size = 15))
+last_plot() + theme(axis.text.x = element_text(size = 18, angle = 45, vjust = 0.5))
+last_plot() + theme(legend.position = 'none')
+
+

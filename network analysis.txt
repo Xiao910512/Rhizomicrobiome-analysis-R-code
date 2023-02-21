@@ -1,0 +1,26 @@
+data <- read.table("metabolites key genus network.txt", header=T, row.name=1, sep="\t")
+name <- read.table("metabolites key genus network name.txt", header=T, row.name=1, sep="\t")
+library(Hmisc)
+library(igraph)
+
+data <- data.matrix(t(data))
+##########
+x <- rcorr(data, type = "spearman")
+r <- x$r
+p <- x$P
+p [p < 0.05] <- 1
+p [p > 0.05&p < 1] <- 0
+r [abs(r) < 0.4] <- 0
+c <- r*p
+c[is.na(c)] <-  0     
+diag(c) <- 0 
+g <- graph.adjacency(c, weighted = TRUE, mode = "undirected")
+g <- simplify(g)
+g<- delete.vertices(g, names(degree(g)[degree(g)==0]))
+write.table(degree(g), "metabolites_key_genus_network_node.xls",row.names = TRUE, sep = "\t", col.names = TRUE)
+write.graph(g, "metabolites_key_genus_network_edge.xls", format = "Pajek")
+g_name <- name[row.names(as.matrix(degree(g))), ]
+write.table(g_name, "metabolites_key_genus_network_name.xls", row.names = TRUE, sep="\t", col.names = TRUE)
+
+
+

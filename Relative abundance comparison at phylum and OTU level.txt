@@ -1,0 +1,118 @@
+########
+##############
+#########the comparison at phylum level
+bac <- read.table("clipboard", header = T, row.name = 1, sep = "\t")
+fun <- read.table("clipboard", header = T, row.name = 1, sep = "\t")
+
+head(bac)
+head(fun)
+
+library(agricolae)
+library(reshape)
+library(ggplot2)
+library(RColorBrewer)
+########### bacterial microbiome and figures
+ncol(bac)
+for (i in 1:10){
+  print(colnames(bac)[i])
+  a <- kruskal.test(bac[, i] ~ bac$Group, data = bac)
+  print(a)
+  comparison <- with(bac, kruskal(bac[, i], bac$Group, group = TRUE, main = "bac"))
+  print(comparison)
+}
+
+data <- melt(bac)
+
+mean <- aggregate(data$value*100, by =list(data$Group, data$variable), FUN = mean)
+sd <- aggregate(data$value*100, by = list(data$Group, data$variable), FUN = sd)
+len <- aggregate(data$value*100, by = list(data$Group, data$variable), FUN = length)
+df_res <- data.frame(mean, sd = sd$x, len = len$x)
+colnames(df_res) = c("Group", "Phylum", "Mean", "Sd", "Count")
+str(df_res)
+df_res$Se <- df_res$Sd/sqrt(df_res$Count) 
+
+dev.new()
+ggplot(df_res, aes(x = Group, y = Mean, fill = Group))+
+       geom_bar(stat = "identity", position = position_dodge(), color = "black", width = .6) +
+       theme_bw() +
+       geom_errorbar(aes(ymin = Mean - Se, ymax = Mean + Se), width=.2, cex = 0.7) +
+       facet_wrap(~Phylum, ncol = 5, scales = "free_y") +
+       theme(strip.text.x = element_text(size = 15))
+last_plot() + xlab("") + ylab("Relative abundance (%)")
+last_plot() + theme(axis.title.y = element_text(size = 18, colour = "black", face = "bold"))
+last_plot() + theme(axis.text.y = element_text(size = 15))
+last_plot() + theme(axis.text.x = element_text(size = 18,angle = 45,vjust = 0.5))
+last_plot() + theme(legend.position = 'none')
+
+
+###########
+################### the comparison at OTUs level by edgeR and figures
+#############
+install.packages('limma',repos='https://mran.microsoft.com/snapshot/2019-02-01/')
+install.packages("edgeR")
+library(edgeR)
+
+############fungal community comparison
+otu<-read.table("otu_table_even.txt", header=T, row.name=1, sep="\t")
+nrow(otu)
+ncol(otu)
+colnames(otu)
+name<-read.table("clipboard", header=T, row.name=1, sep="\t")
+
+
+x<-data.matrix(genus)
+a_a = c(1:6)
+a_b = c(7:12)
+b_a = c(13:18)
+b_b = c(19:24)
+
+#########A_A---B_B comparison
+groups <- c(rep("A_A", 6), rep("B_B", 6))   
+y <- DGEList(counts = x[, c(a_a, b_b)], group = groups)
+y <- calcNormFactors(y)
+y <- estimateCommonDisp(y, verbose = TRUE)
+y <- estimateTagwiseDisp(y)
+et <- exactTest(y)
+summary(de <- decideTestsDGE(et))
+de <- decideTestsDGE(et)
+top <- topTags(et, n=2817)
+write.csv(top, file = "A_A--B_B altered OTU.csv")
+
+data <- cbind(top, name)
+write.csv(data, file = "A_A--B_B altered OTU abun.csv")
+
+#########A_B---B_A comparison
+groups<-c(rep("A_B", 6), rep("B_A", 6))   
+y <- DGEList(counts=x[, c(a_b,b_a)], group = groups)
+y <- calcNormFactors(y)
+y <- estimateCommonDisp(y, verbose = TRUE)
+y <- estimateTagwiseDisp(y)
+et <- exactTest(y)
+summary(de <- decideTestsDGE(et))
+de <- decideTestsDGE(et)
+top <- topTags(et, n = 2817)
+write.csv(top, file = "A_B---B_A altered OTU.csv")
+
+data <- cbind(top, name)
+write.csv(data, file = "A_B---B_A altered OTU abun.csv")
+
+#############edgeR results scatter plot
+ab <- read.csv("A_A--B_B OTU plot.csv", header=T, sep=",")
+abba <- read.csv("B_A--A_B OTU plot.csv", header=T, sep=",")
+data <- rbind(ab[, 1:7], abba[, 1:7])
+data$Group <- factor(data$Group, levels = c("A_A--B_B", "B_A--A_B"), 
+                              labels=c("A_A--B_B", "B_A--A_B"))
+
+library(ggplot2)
+
+dev.new()
+p <- ggplot(data = data, aes(x = logCPM, y = logFC, color = Color)) + geom_jitter(width = 0.4, alpha = 0.6) + facet_wrap(~ Group, ncol = 2)
+p + theme_bw() + geom_hline(aes(yintercept = 2), color = "grey") + geom_hline(aes(yintercept = -2), color = "grey")
+last_plot() + xlab("LogCPM") + ylab("LogFC") + theme(strip.text = element_text(size = 15))
+last_plot() + theme(axis.title.y = element_text(size = 15,colour = "black", face = "bold"), axis.title.x=element_text(size = 15, colour = "black", face = "bold"))
+last_plot() + theme(axis.text.y = element_text(size = 15), axis.text.x = element_text(size = 15), legend.position = 'none')
+
+
+
+
+

@@ -1,0 +1,231 @@
+data <- read.table("family reads count.txt", header=T, row.name=1, sep="\t")
+
+data2 <- data[, c(1:6, 13:18)]
+condition<-c(rep("A_A",6), rep("B_A",6))
+group = data.frame(row.names = colnames(data[, c(1:6, 13:18)]), condition)
+
+library(DESeq2)
+format = DESeqDataSetFromMatrix(data2, group, design = ~condition) 
+analyze = DESeq(format)
+result = results(analyze, contrast = c("condition", unique(condition))) 
+result = result[order(result$pvalue), ] 
+
+# summary(result)
+#write.csv(result, file = paste(project, "deseq_result.csv", sep="_"))
+diff_taxon = subset(result, padj < 0.05 & abs(log2FoldChange) > 1)
+#write.csv(diff_taxon, file= paste(project, "diff_taxon_padj_0.05_fc_1.csv", sep="_"))
+
+###### figures
+color <- read.table("family corresponding phylum.txt", header = T, sep = "\t")
+
+input = data.frame(name = rownames(diff_taxon), log2fc = diff_taxon$log2FoldChange)  
+input = merge(input, color, by.x = "name", by.y = "Taxonomy")  
+input = input[order(input$log2fc, decreasing = F), ]  
+head(input)
+
+library(ggplot2)
+p1 = ggplot(input, aes(x=log2fc, y=name, fill = Phylum)) +
+  geom_point(pch = 21, size = 4, color = "white") +
+  labs(x="Log2 (Fold Change)", y="", fill="Phylum") +
+  scale_y_discrete(limits = factor(input$name)) +
+  geom_vline(xintercept = 0, size = 0.8, linetype = 2) +
+  theme(axis.title.y = element_text(size = 10, colour = "black", face = "bold"), axis.title.x=element_text(size=10, colour="black", face = "bold"), axis.text.y = element_text(size = 10), axis.text.x = element_text(size = 10), legend.title = element_text(size = 10, colour = "black", face = "bold"), legend.text = element_text(size = 10), legend.position = "left")
+
+###########
+head(data2)
+data3 <- data2[input$name, ]
+data3 <- cbind(t(data3), group)
+library(reshape)
+data4 <- melt(data3, id = "condition")
+
+mean <- aggregate(data4$value, by = list(data4$condition, data4$variable), FUN = mean)
+sd <- aggregate(data4$value, by = list(data4$condition, data4$variable), FUN = sd)
+len <- aggregate(data4$value, by = list(data4$condition, data4$variable), FUN = length)
+df_res <- data.frame(mean, sd = sd$x, len = len$x)
+colnames(df_res) = c("Group", "Family", "Mean", "Sd", "Count")
+str(df_res)
+df_res$Se <- df_res$Sd/sqrt(df_res$Count) 
+
+p2   = ggplot(df_res, aes(x = Family, y = Mean, fill = Group)) +
+       geom_bar(stat = "identity", position = position_dodge(), width = .6) +
+       coord_flip() +
+       geom_errorbar(aes(ymin = Mean-Se, ymax = Mean +Se), position = position_dodge(.6), width = .3) +
+       theme(strip.text.x = element_text(size = 10))+ xlab("") + ylab("Reads") +
+       theme(axis.title.x = element_text(size = 10, colour = "black", face = "bold"), axis.text.x = element_text(size = 10), legend.title = element_text(size = 10, colour = "black", face = "bold"), legend.text = element_text(size = 10), axis.ticks.y = element_blank(), axis.line.y = element_blank(), axis.text.y = element_blank())
+       
+
+
+########B_B和A_B之间
+colnames(data)
+data2 <- data[, c(19:24, 7:12)]
+condition <- c(rep("B_B", 6), rep("A_B", 6))
+group = data.frame(row.names = colnames(data[, c(19:24, 7:12)]), condition)
+
+format = DESeqDataSetFromMatrix(data2, group, design = ~condition) 
+analyze = DESeq(format)
+result = results(analyze, contrast = c("condition", unique(condition))) 
+result = result[order(result$pvalue), ] 
+
+# summary(result)
+#write.csv(result, file = paste(project, "deseq_result.csv", sep="_"))
+diff_taxon = subset(result, padj < 0.05 & abs(log2FoldChange) > 1)
+#write.csv(diff_taxon, file= paste(project, "diff_taxon_padj_0.05_fc_1.csv", sep="_"))
+
+input = data.frame(name = rownames(diff_taxon), log2fc = diff_taxon$log2FoldChange)  
+input = merge(input, color, by.x = "name", by.y = "Taxonomy")  
+input = input[order(input$log2fc, decreasing = F), ]  
+head(input)
+
+p3 = ggplot(input, aes(x=log2fc, y=name, fill = Phylum)) +
+  geom_point(pch = 21, size = 4, color = "white") +
+  labs(x="Log2 (Fold Change)", y="", fill="Phylum") +
+  scale_y_discrete(limits = factor(input$name)) +
+  geom_vline(xintercept = 0, size = 0.8, linetype = 2) +
+  theme(axis.title.y = element_text(size = 10, colour = "black", face = "bold"), axis.title.x=element_text(size=10, colour="black", face = "bold"), axis.text.y = element_text(size = 10), axis.text.x = element_text(size = 10), legend.title = element_text(size = 10, colour = "black", face = "bold"), legend.text = element_text(size = 10), legend.position = "left")
+
+
+###########
+head(data2)
+data3 <- data2[input$name, ]
+data3 <- cbind(t(data3), group)
+library(reshape)
+data4 <- melt(data3, id = "condition")
+
+mean <- aggregate(data4$value, by = list(data4$condition, data4$variable), FUN = mean)
+sd <- aggregate(data4$value, by = list(data4$condition, data4$variable), FUN = sd)
+len <- aggregate(data4$value, by = list(data4$condition, data4$variable), FUN = length)
+df_res <- data.frame(mean, sd = sd$x, len = len$x)
+colnames(df_res) = c("Group", "Family", "Mean", "Sd", "Count")
+str(df_res)
+df_res$Se <- df_res$Sd/sqrt(df_res$Count) 
+
+p4   = ggplot(df_res, aes(x = Family, y = Mean, fill = Group)) +
+       geom_bar(stat = "identity", position = position_dodge(), width = .6) +
+       coord_flip() +
+       geom_errorbar(aes(ymin = Mean-Se, ymax = Mean +Se), position = position_dodge(.6), width = .3) +
+       theme(strip.text.x = element_text(size = 10))+ xlab("") + ylab("Reads") +
+       theme(axis.title.x = element_text(size = 10, colour = "black", face = "bold"), axis.text.x = element_text(size = 10), legend.title = element_text(size = 10, colour = "black", face = "bold"), legend.text = element_text(size = 10), axis.ticks.y = element_blank(), axis.line.y = element_blank(), axis.text.y = element_blank())
+       
+
+###############
+############################
+############################fungal community comparison
+
+data <- read.table("fungal family reads count.txt", header=T, row.name=1, sep="\t")
+
+data2 <- data[,c(1:6, 13:18)]
+condition <- c(rep("A_A", 6), rep("B_A", 6))
+group = data.frame(row.names = colnames(data[, c(1:6,13:18)]), condition)
+
+format = DESeqDataSetFromMatrix(data2, group, design = ~condition) 
+analyze = DESeq(format)
+result = results(analyze, contrast = c("condition", unique(condition))) 
+result = result[order(result$pvalue), ] 
+
+# summary(result)
+#write.csv(result, file = paste(project, "deseq_result.csv", sep="_"))
+diff_taxon = subset(result, padj < 0.05 & abs(log2FoldChange) > 1)
+#write.csv(diff_taxon, file= paste(project, "diff_taxon_padj_0.05_fc_1.csv", sep="_"))
+
+
+color <- read.table("fungal family corresponding phylum.txt",header=T,sep="\t")
+
+input = data.frame(name = rownames(diff_taxon), log2fc = diff_taxon$log2FoldChange)  
+input = merge(input, color, by.x = "name", by.y = "Taxonomy")  
+input = input[order(input$log2fc, decreasing = F), ]  
+head(input)
+
+p5 = ggplot(input, aes(x=log2fc, y=name, fill = Phylum)) +
+  geom_point(pch = 21, size = 4, color = "white") +
+  labs(x="Log2 (Fold Change)", y="", fill="Phylum") +
+  scale_y_discrete(limits = factor(input$name)) +
+  geom_vline(xintercept = 0, size = 0.8, linetype = 2) +
+  theme(axis.title.y = element_text(size = 10, colour = "black", face = "bold"), axis.title.x=element_text(size=10, colour="black", face = "bold"), axis.text.y = element_text(size = 10), axis.text.x = element_text(size = 10), legend.title = element_text(size = 10, colour = "black", face = "bold"), legend.text = element_text(size = 10), legend.position = "left")
+
+
+###########
+head(data2)
+data3 <- data2[input$name, ]
+data3 <- cbind(t(data3), group)
+library(reshape)
+data4 <- melt(data3, id = "condition")
+
+mean <- aggregate(data4$value, by = list(data4$condition, data4$variable), FUN = mean)
+sd <- aggregate(data4$value, by = list(data4$condition, data4$variable), FUN = sd)
+len <- aggregate(data4$value, by = list(data4$condition, data4$variable), FUN = length)
+df_res <- data.frame(mean, sd = sd$x, len = len$x)
+colnames(df_res) = c("Group", "Family", "Mean", "Sd", "Count")
+str(df_res)
+df_res$Se <- df_res$Sd/sqrt(df_res$Count) 
+
+p6   = ggplot(df_res, aes(x = Family, y = Mean, fill = Group)) +
+       geom_bar(stat = "identity", position = position_dodge(), width = .6) +
+       coord_flip() +
+       geom_errorbar(aes(ymin = Mean-Se, ymax = Mean +Se), position = position_dodge(.6), width = .3) +
+       theme(strip.text.x = element_text(size = 10))+ xlab("") + ylab("Reads") +
+       theme(axis.title.x = element_text(size = 10, colour = "black", face = "bold"), axis.text.x = element_text(size = 10), legend.title = element_text(size = 10, colour = "black", face = "bold"), legend.text = element_text(size = 10), axis.ticks.y = element_blank(), axis.line.y = element_blank(), axis.text.y = element_blank())
+       
+
+
+########B_B和A_B之间
+colnames(data)
+data2 <- data[, c(19:22, 7:12)]
+condition <- c(rep("B_B", 4), rep("A_B", 6))
+group = data.frame(row.names = colnames(data[, c(19:22, 7:12)]), condition)
+
+format = DESeqDataSetFromMatrix(data2, group, design = ~condition) 
+analyze = DESeq(format)
+result = results(analyze, contrast = c("condition", unique(condition))) 
+result = result[order(result$pvalue), ] 
+
+# summary(result)
+#write.csv(result, file = paste(project, "deseq_result.csv", sep="_"))
+diff_taxon = subset(result, padj < 0.05 & abs(log2FoldChange) > 1)
+#write.csv(diff_taxon, file= paste(project, "diff_taxon_padj_0.05_fc_1.csv", sep="_"))
+
+input = data.frame(name = rownames(diff_taxon), log2fc = diff_taxon$log2FoldChange)  
+input = merge(input, color, by.x = "name", by.y = "Taxonomy")  
+input = input[order(input$log2fc, decreasing = F), ]  
+head(input)
+
+p7 = ggplot(input, aes(x=log2fc, y=name, fill = Phylum)) +
+  geom_point(pch = 21, size = 4, color = "white") +
+  labs(x="Log2 (Fold Change)", y="", fill="Phylum") +
+  scale_y_discrete(limits = factor(input$name)) +
+  geom_vline(xintercept = 0, size = 0.8, linetype = 2) +
+  theme(axis.title.y = element_text(size = 10, colour = "black", face = "bold"), axis.title.x=element_text(size=10, colour="black", face = "bold"), axis.text.y = element_text(size = 10), axis.text.x = element_text(size = 10), legend.title = element_text(size = 10, colour = "black", face = "bold"), legend.text = element_text(size = 10), legend.position = "left")
+
+###########
+head(data2)
+data3 <- data2[input$name, ]
+data3 <- cbind(t(data3), group)
+library(reshape)
+data4 <- melt(data3, id = "condition")
+
+mean <- aggregate(data4$value, by = list(data4$condition, data4$variable), FUN = mean)
+sd <- aggregate(data4$value, by = list(data4$condition, data4$variable), FUN = sd)
+len <- aggregate(data4$value, by = list(data4$condition, data4$variable), FUN = length)
+df_res <- data.frame(mean, sd = sd$x, len = len$x)
+colnames(df_res) = c("Group", "Family", "Mean", "Sd", "Count")
+str(df_res)
+df_res$Se <- df_res$Sd/sqrt(df_res$Count) 
+
+p8   = ggplot(df_res, aes(x = Family, y = Mean, fill = Group)) +
+       geom_bar(stat = "identity", position = position_dodge(), width = .6) +
+       coord_flip() +
+       geom_errorbar(aes(ymin = Mean-Se, ymax = Mean +Se), position = position_dodge(.6), width = .3) +
+       theme(strip.text.x = element_text(size = 10))+ xlab("") + ylab("Reads") +
+       theme(axis.title.x = element_text(size = 10, colour = "black", face = "bold"), axis.text.x = element_text(size = 10), legend.title = element_text(size = 10, colour = "black", face = "bold"), legend.text = element_text(size = 10), axis.ticks.y = element_blank(), axis.line.y = element_blank(), axis.text.y = element_blank())
+       
+
+library(devtools)
+library(ggpubr)
+dev.new()
+ggarrange(p1, p2, p3, p4, p5, p6, p7, p8, ncol=4, nrow = 2, widths =c(4, 2, 4, 2))
+ggsave("x.pdf", width = 17, height = 7)
+
+
+
+
+
+

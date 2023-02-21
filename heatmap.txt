@@ -1,0 +1,12 @@
+aa_ba <- read.table("AA_BA altered metabolites.txt", header=T, row.name=1, sep="\t")
+bb_ab <- read.table("BB_AB altered metabolites.txt", header=T, row.name=1, sep="\t")
+
+library(pheatmap)
+aa_ba2 <- scale(t(aa_ba), scale = T)
+dev.new()
+pheatmap(t(aa_ba2), cluster_rows = FALSE)
+
+bb_ab2 <- scale(t(bb_ab), scale = T)
+dev.new()
+pheatmap(t(bb_ab2), cluster_rows = FALSE)
+
