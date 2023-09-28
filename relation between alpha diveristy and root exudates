@@ -1,0 +1,39 @@
+alpha <- read.table("alpha_diversity_index.txt", header=T, row.name=1, sep="\t")
+
+head(alpha)
+rownames(alpha)
+
+meta<-read.table("metabolites.txt",header=T,row.name=1,sep="\t")
+ncol(meta)
+nrow(meta)
+head(meta)
+
+data <- t(rbind(alpha, meta))
+head(data)
+nrow(data)
+data <- data.matrix(data)
+library(Hmisc)
+re <- rcorr(data, type="spearman")
+write.csv(re$r, file="spearman_relation.csv")
+write.csv(re$P, file="spearman_pvalue.csv")
+
+obse_P <- read.table("clipboard", header=T, row.name=1, sep="\t")
+obse_r <- re$r[rownames(obse_P), 1:2]
+shan_P <- read.table("clipboard", header=T, row.name=1, sep="\t")
+shan_r  <-re$r[rownames(shan_P), 1:2]
+library(ggplot2)
+library(reshape)
+library(RColorBrewer)
+
+my_color <- brewer.pal(5, "Spectral")
+p_obse_r <- read.table("clipboard", header=T, sep="\t")
+p_obse_r <- melt(p_obse_r)
+ggplot(p_obse_r, aes(r, variable, fill = value)) +
+  geom_point(aes(size = abs(value)), shape = 21, colour = "white") +
+  scale_fill_gradientn(colours = my_color) +
+  scale_size_area(max_size = 8, guide = FALSE)
+last_plot() + xlab("")+ ylab("")
+last_plot() + theme(strip.text = element_text(size = 12))
+last_plot() + theme(axis.text.y=element_text(size=12))
+last_plot() + theme(axis.text.x=element_text(size=12, angle=45, hjust=0.95, vjust=0.95))
+
