@@ -9,4 +9,3 @@ pheatmap(t(aa_ba2), cluster_rows = FALSE)
 bb_ab2 <- scale(t(bb_ab), scale = T)
 dev.new()
 pheatmap(t(bb_ab2), cluster_rows = FALSE)
-
