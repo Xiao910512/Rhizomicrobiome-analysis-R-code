@@ -55,7 +55,7 @@ p2   = ggplot(df_res, aes(x = Family, y = Mean, fill = Group)) +
        
 
 
-########B_B和A_B之间
+########between B_B and A_B
 colnames(data)
 data2 <- data[, c(19:24, 7:12)]
 condition <- c(rep("B_B", 6), rep("A_B", 6))
@@ -167,7 +167,7 @@ p6   = ggplot(df_res, aes(x = Family, y = Mean, fill = Group)) +
        
 
 
-########B_B和A_B之间
+########between B_B and A_B
 colnames(data)
 data2 <- data[, c(19:22, 7:12)]
 condition <- c(rep("B_B", 4), rep("A_B", 6))
