@@ -1,3 +1,4 @@
+############the network of Pseudomonas, Talaromyces and root exudates
 data <- read.table("metabolites key genus network.txt", header=T, row.name=1, sep="\t")
 name <- read.table("metabolites key genus network name.txt", header=T, row.name=1, sep="\t")
 library(Hmisc)
@@ -22,5 +23,47 @@ write.graph(g, "metabolites_key_genus_network_edge.xls", format = "Pajek")
 g_name <- name[row.names(as.matrix(degree(g))), ]
 write.table(g_name, "metabolites_key_genus_network_name.xls", row.names = TRUE, sep="\t", col.names = TRUE)
 
+############the network of rhizosphere bacteria, fungi and root exudates
+otu <- read.table("otu_bacteria_fungi.txt", header=T, row.name=1, sep="\t")
 
+head(otu)
+nrow(otu)
+ncol(otu)
+colnames(otu)
 
+otu1 <- t(otu)
+colsum <- sapply(1:ncol(otu1), function(x) sum(otu1[,x]))
+otu1 <- otu1[, order(colsum, decreasing=TRUE)]
+colsum <- sapply(1:ncol(otu1), function(x) sum(otu1[,x]))
+otu1 <- otu1[, 1:length(colsum[colsum>0.01])]  #delete the otu with the sum < 1%
+
+nrow(otu1)
+ncol(otu1)
+
+meta <- read.table("metabolites.txt", header=T, row.name=1, sep="\t")
+head(meta)
+
+rownames(otu1) <- colnames(meta)
+aa<-rbind(meta, t(otu1))
+
+a <- data.matrix(t(aa))
+
+library(Hmisc)
+library(igraph)
+
+b <- rcorr(a, type="spearman")
+r <- b$r
+p <- b$P
+r[abs(r)<0.7] <- 0                
+p[abs(p)<0.01] <- 1
+p[abs(p)>0.01&abs(p)<1] <- 0   
+c<-r*p
+c[is.na(c)]<- 0     
+diag(c) <- 0 
+
+g <- graph.adjacency(c, weighted=TRUE, mode="undirected")
+g <- simplify(g)
+g <- delete.vertices(g, names(degree(g)[degree(g)==0]))
+
+write.table(degree(g), "bacteria_fungi_meta_network0.7_node.xls", row.names=TRUE, sep="\t", col.names = TRUE)
+write.graph(g, "bacteria_fungi_meta_network0.7_edge.xls", format="Pajek")
