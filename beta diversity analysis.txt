@@ -170,8 +170,6 @@ env <- alpha[c(ab, ba), ]
 ano <- with(env, anosim(data, Group2))
 summary(ano)
 
-
-
 ##############
 ######################
 ##########################Unifrac distance comparison 
@@ -219,4 +217,3 @@ last_plot() + theme(legend.position = 'none')
 kruskal.test(value~group, data = data)
 comparison<-with(data,kruskal(value, group, group=TRUE, main="data"))
 comparison
-
