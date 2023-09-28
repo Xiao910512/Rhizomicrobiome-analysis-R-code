@@ -30,7 +30,6 @@ last_plot() + theme(axis.text.y = element_text(size = 15))
 last_plot() + theme(axis.text.x = element_text(size = 18, angle = 45, vjust = 0.5))
 last_plot() + theme(legend.position = 'none')
 
-
 ###########
 #############the comparison of rhizosphere microbiome between four gourps and figures
 
@@ -72,7 +71,6 @@ comparison
 kruskal.test(Shannon ~ Group1, data = alpha)
 comparison <- with(alpha,kruskal(Shannon, Group1, group=TRUE, main = "data"))
 comparison
-
 
 alpha$Group1 = factor(alpha$Group1, 
               levels = c('Rhizosphere', 'Bulk soil'))
@@ -117,5 +115,3 @@ last_plot() + theme(strip.text = element_text(size = 15))
 last_plot() + theme(axis.text.y = element_text(size = 15))
 last_plot() + theme(axis.text.x = element_text(size = 18, angle = 45, vjust = 0.5))
 last_plot() + theme(legend.position = 'none')
-
-
