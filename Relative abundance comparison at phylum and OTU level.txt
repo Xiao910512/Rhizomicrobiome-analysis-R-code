@@ -111,8 +111,3 @@ p + theme_bw() + geom_hline(aes(yintercept = 2), color = "grey") + geom_hline(ae
 last_plot() + xlab("LogCPM") + ylab("LogFC") + theme(strip.text = element_text(size = 15))
 last_plot() + theme(axis.title.y = element_text(size = 15,colour = "black", face = "bold"), axis.title.x=element_text(size = 15, colour = "black", face = "bold"))
 last_plot() + theme(axis.text.y = element_text(size = 15), axis.text.x = element_text(size = 15), legend.position = 'none')
-
-
-
-
-
